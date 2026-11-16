@@ -106,9 +106,14 @@ def test(test_length, testlength_primaries, testdata_store):
     m_lr_ele, m_pca_ele = calc_gradient(t_ele, z_ele)
     m_lr_h0, m_pca_h0 = calc_gradient(t_h0, z_h0)
 
-    # reference gradients
+    # reference gradients for 100 particles
     ref_m_lr_ele, ref_m_pca_ele = -257589161.82326686, -306558144.2939847
-    ref_m_lr_h0, ref_m_pca_h0 = -254264354.88906184, -306845014.2525596
+    ref_m_lr_h0, ref_m_pca_ele = -254264354.88906184, -306845014.2525596
+
+    # TODO: test against 500 and 1000 particles too (references for 1000 shown below)
+    # reference gradients for 1000 particles
+    # ref_m_lr_ele, ref_m_pca_ele = -257589161.82326686, -306558144.2939847
+    # ref_m_lr_h0, ref_m_pca_h0 = -254264354.88906184, -306845014.2525596
 
     # storing test entry with gradients, and asserting.
     te = testdata_store.new_test_entry("22_processes", __file__, nprimary, timing)
