@@ -55,6 +55,7 @@ def test(test_length, testlength_primaries, testdata_store):
     samplerData = pybdsim.Data.SamplerData(d, 'laser1')
 
     # loading the charge data from sampler
+    partid = samplerData.data.get('partID')
     charge = samplerData.data.get('charge')
 
     # initiallising relevant variables
@@ -72,7 +73,7 @@ def test(test_length, testlength_primaries, testdata_store):
         for i in range(traj.n):
 
             # if the particle is an electron
-            if traj.partID[i] == 11:
+            if partid[i] == 11:
 
                 n_ele += 1
 
@@ -87,7 +88,7 @@ def test(test_length, testlength_primaries, testdata_store):
                 z_ele.append(z)
                 t_ele.append(t)
 
-            # if the particle is a netural hydrogen atom
+            # if the particle is a neutral hydrogen atom
             if (traj.partID[i] == 2212) and (charge[i] == 0):
 
                 n_h0 += 1
@@ -110,7 +111,7 @@ def test(test_length, testlength_primaries, testdata_store):
     ref_m_lr_h0, ref_m_pca_h0 = -254264354.88906184, -306845014.2525596
 
     # storing test entry with gradients, and asserting.
-    te.testdata_store.new_test_entry("22_processes", __file__, nprimary, timing)
+    te = testdata_store.new_test_entry("22_processes", __file__, nprimary, timing)
 
     te.add_output_parameter("m_lr_ele", m_lr_ele)
     te.add_output_parameter("m_pca_ele", m_pca_ele)
@@ -121,5 +122,3 @@ def test(test_length, testlength_primaries, testdata_store):
     assert (m_pca_ele==ref_m_pca_ele)
     assert (m_lr_h0==ref_m_lr_h0)
     assert (m_pca_h0==ref_m_pca_h0)
-
-# test()
