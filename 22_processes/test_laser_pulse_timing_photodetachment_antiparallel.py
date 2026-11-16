@@ -1,31 +1,13 @@
-# importing relevant packages
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pybdsim
 import pytest
-import time
 
 from sklearn.decomposition import PCA
 from pathlib import Path
 
-# defining generic plotting and calculation functions
-def plot_histogram(t, z, particle, bins=20, cmap='viridis'):
-    '''
-    '''
-    plt.hist2d(t, z, bins=bins, cmap=cmap)
-
-    plt.xlabel(f'Time at production $t$ [ns]')
-    plt.ylabel(f'Position at production $z$ [m]')
-
-    plt.colorbar(label=f'Number of {particle}s')
-
-    plt.plot()
-    plt.show()  
-
 def calc_gradient(t, z):
-    '''
-    '''
+    '''calculate gradient of particle position vs time using linear regression and principal component analysis'''
     # linear regression
     z = np.array(z)
     t = np.array(t)*1e-9 # units: [s]
@@ -44,10 +26,8 @@ def calc_gradient(t, z):
     return m_lr, m_pca
 
 def test():
-    '''
-    testing laser pulse timings for photodetachment laser antiparallel to the particle beam
-    '''
-    # changing directory to the directory of the script
+    '''test laser pulse timings for photodetachment laser antiparallel to the particle beam'''
+
     os.chdir(Path(__file__).resolve().parent)
 
     # defining the relevant filenames
@@ -64,18 +44,17 @@ def test():
     }
 
     # defining the number of primaries to generate
-    nprimary = 1000
+    nprimary = testlength_primaries.get_nprimary(__file__, test_length)
 
     # # rendering the gmad template and running the corresponding beam simulation
-    # pybdsim.Run.RenderGmadJinjaTemplate(template_name, gmad_name, data_antiparallel)
-    # sproc, timing = pybdsim.Run.Bdsim(gmad_name, base_name, ngenerate=nprimary, seed=1, returnTiming=True)
+    pybdsim.Run.RenderGmadJinjaTemplate(template_name, gmad_name, data_antiparallel)
+    sproc, timing = pybdsim.Run.Bdsim(gmad_name, base_name, ngenerate=nprimary, seed=1, returnTiming=True)
 
     # load data from generated root file
     d = pybdsim.Data.Load(f'{root_name}')
     samplerData = pybdsim.Data.SamplerData(d, 'laser1')
 
-    # loading the relevant sampler data
-    partid = samplerData.data.get('partID')
+    # loading the charge data from sampler
     charge = samplerData.data.get('charge')
 
     # initiallising relevant variables
@@ -122,13 +101,25 @@ def test():
                 z_h0.append(z)
                 t_h0.append(t)
 
-    plot_histogram(t_ele, z_ele, particle='electron')
-    plot_histogram(t_h0, z_h0, particle='negative hydrogen ion')
-
+    # calculate gradients
     m_lr_ele, m_pca_ele = calc_gradient(t_ele, z_ele)
     m_lr_h0, m_pca_h0 = calc_gradient(t_h0, z_h0)
 
-    print(m_lr_ele, m_pca_ele)
-    print(m_lr_h0, m_pca_h0)
+    # reference gradients
+    ref_m_lr_ele, ref_m_pca_ele = -257589161.82326686, -306558144.2939847
+    ref_m_lr_h0, ref_m_pca_h0 = -254264354.88906184, -306845014.2525596
 
-test()
+    # storing test entry with gradients, and asserting.
+    te.testdata_store.new_test_entry("22_processes", __file__, nprimary, timing)
+
+    te.add_output_parameter("m_lr_ele", m_lr_ele)
+    te.add_output_parameter("m_pca_ele", m_pca_ele)
+    te.add_output_parameter("m_lr_h0", m_lr_h0)
+    te.add_output_parameter("m_pca_h0", m_pca_h0)
+
+    assert (m_lr_ele==ref_m_lr_ele)
+    assert (m_pca_ele==ref_m_pca_ele)
+    assert (m_lr_h0==ref_m_lr_h0)
+    assert (m_pca_h0==ref_m_pca_h0)
+
+# test()
