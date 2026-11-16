@@ -7,7 +7,7 @@ pulseEnergy={{LASER_ENERGY}}*mJ,
 w0=1.0*mm;
 
 ! defining the antiparallel laserwire
-laser1: laserwire, l=10.0*m, wireLength=10.0*m, laserOffsetTheta=0, laserOffsetPhi=0, laserOffsetY=0.0*m, laserBeam="lb1";
+laser1: laserwire, l=10.0*m, wireLength=10.0*m, laserOffsetTheta={{LASER_OFFSET_THETA}}, laserOffsetPhi=0, laserOffsetY=0.0*m, laserBeam="lb1";
 
 ! defining a drift (not sure it's needed)
 drift1: drift, l=3.280275*m;

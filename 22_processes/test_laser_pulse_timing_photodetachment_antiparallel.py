@@ -52,11 +52,6 @@ def test(test_length, testlength_primaries, testdata_store):
 
     # load data from generated root file
     d = pybdsim.Data.Load(f'{root_name}')
-    samplerData = pybdsim.Data.SamplerData(d, 'laser1')
-
-    # # loading the charge data from sampler
-    # partid = samplerData.data.get('partID')
-    # charge = samplerData.data.get('charge')
 
     # initialising relevant variables
     n_ele, n_h0 = 0, 0
