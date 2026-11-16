@@ -25,7 +25,7 @@ sigmaT=2.0e-10*s;
 ! defining options
 option, physicsList="laser_photo_detachment",
 storeSamplerCharge=1,
-storeTrajectory=1, 
+storeTrajectory=1,
 trajConnect=1, 
 scaleFactorLaser=100, 
 storeTrajectoryDepth=1, 
@@ -33,6 +33,7 @@ storeTrajectoryParticleID="11",
 storeTrajectoryLocal=1,
 storeTrajectorySecondaryParticles=1,
 storeTrajectoryTime=1,
+storeTrajectoryLinks=1,
 storeTrajectoryAllVariables=1;
 
 ! defining samplers

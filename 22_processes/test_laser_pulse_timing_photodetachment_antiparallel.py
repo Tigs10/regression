@@ -46,7 +46,7 @@ def test(test_length, testlength_primaries, testdata_store):
     # defining the number of primaries to generate
     nprimary = testlength_primaries.get_nprimary(__file__, test_length)
 
-    # # rendering the gmad template and running the corresponding beam simulation
+    # rendering the gmad template and running the corresponding beam simulation
     pybdsim.Run.RenderGmadJinjaTemplate(template_name, gmad_name, data_antiparallel)
     sproc, timing = pybdsim.Run.Bdsim(gmad_name, base_name, ngenerate=nprimary, seed=1, returnTiming=True)
 
@@ -54,66 +54,68 @@ def test(test_length, testlength_primaries, testdata_store):
     d = pybdsim.Data.Load(f'{root_name}')
     samplerData = pybdsim.Data.SamplerData(d, 'laser1')
 
-    # loading the charge data from sampler
-    partid = samplerData.data.get('partID')
-    charge = samplerData.data.get('charge')
+    # # loading the charge data from sampler
+    # partid = samplerData.data.get('partID')
+    # charge = samplerData.data.get('charge')
 
-    # initiallising relevant variables
+    # initialising relevant variables
     n_ele, n_h0 = 0, 0
     z_ele, z_h0 = [], []
     t_ele, t_h0 = [], []
 
-    # for every event in the simulation, obtain the event tree from the data file
+    # for event in simulation
     for event in d.GetEventTree():
 
-        # retrieve particle trajectory for a given event
+        # obtain trajectory
         traj = event.Trajectory
 
         # for each particle trajectory
         for i in range(traj.n):
 
             # if the particle is an electron
-            if partid[i] == 11:
-
+            if traj.partID[i] == 11:
                 n_ele += 1
 
                 # obtain parent index and parent step index that produced the secondary
                 parent_index = traj.parentIndex[i]
                 parent_step = traj.parentStepIndex[i]
 
-                # retrieve the z and t coordinates
+                # obtain the position and time of particle production
                 z = traj.XYZ[parent_index][parent_step].Z()
                 t = traj.T[parent_index][parent_step]
 
                 z_ele.append(z)
                 t_ele.append(t)
 
-            # if the particle is a neutral hydrogen atom
-            if (traj.partID[i] == 2212) and (charge[i] == 0):
+            # if particle is "proton"
+            if traj.partID[i] == 2212:  # (H0 defined as p+ with charge = 0)
 
-                n_h0 += 1
+                # obtain corresponding charge vector
+                charges = traj.charge[i]
 
-                parent_index = traj.parentIndex[i]
-                parent_step = traj.parentStepIndex[i]
+                # loop through each charge and step where charge is neutralised
+                for neutral_step, charge in enumerate(charges):
 
-                z = traj.XYZ[parent_index][parent_step].Z()
-                t = traj.T[parent_index][parent_step]
+                    # if the particle is neutral
+                    if charge == 0:
+                        n_h0 += 1
 
-                z_h0.append(z)
-                t_h0.append(t)
+                        # obtain the position and time of particle production
+                        z = traj.XYZ[i][neutral_step].Z()
+                        t = traj.T[i][neutral_step]
 
-    # calculate gradients
+                        z_h0.append(z)
+                        t_h0.append(t)
+
+                        break
+
+    # calculate gradients for electrons and neutrals
     m_lr_ele, m_pca_ele = calc_gradient(t_ele, z_ele)
     m_lr_h0, m_pca_h0 = calc_gradient(t_h0, z_h0)
 
+    # TODO: test against 500 and 1000 particles too
     # reference gradients for 100 particles
-    ref_m_lr_ele, ref_m_pca_ele = -269005268.88693327, -303557860.5376599
-    ref_m_lr_h0, ref_m_pca_h0 = -268032851.65310135, -306430063.98222405
-
-    # TODO: test against 500 and 1000 particles too (references for 1000 shown below)
-    # reference gradients for 1000 particles
-    # ref_m_lr_ele, ref_m_pca_ele = -257589161.82326686, -306558144.2939847
-    # ref_m_lr_h0, ref_m_pca_h0 = -254264354.88906184, -306845014.2525596
+    ref_m_lr, ref_m_pca = -269005268.88693327, -303557860.5376599
 
     # storing test entry with gradients, and asserting.
     te = testdata_store.new_test_entry("22_processes", __file__, nprimary, timing)
@@ -123,7 +125,7 @@ def test(test_length, testlength_primaries, testdata_store):
     te.add_output_parameter("m_lr_h0", m_lr_h0)
     te.add_output_parameter("m_pca_h0", m_pca_h0)
 
-    assert (m_lr_ele==ref_m_lr_ele)
-    assert (m_pca_ele==ref_m_pca_ele)
-    assert (m_lr_h0==ref_m_lr_h0)
-    assert (m_pca_h0==ref_m_pca_h0)
+    assert (m_lr_ele==ref_m_lr)
+    assert (m_pca_ele==ref_m_pca)
+    assert (m_lr_h0==ref_m_lr)
+    assert (m_pca_h0==ref_m_pca)
