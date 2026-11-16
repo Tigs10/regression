@@ -25,7 +25,7 @@ def calc_gradient(t, z):
 
     return m_lr, m_pca
 
-def test():
+def test(test_length, testlength_primaries, testdata_store):
     '''test laser pulse timings for photodetachment laser antiparallel to the particle beam'''
 
     os.chdir(Path(__file__).resolve().parent)
